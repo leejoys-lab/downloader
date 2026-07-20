@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>릴스 커버 아카이브</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#eee7d8;
+    --ink-dim:#a9a08c;
+    --base:#15140f;
+    --base-raised:#1d1c15;
+    --frame:#332f22;
+    --safelight:#e0983a;
+    --safelight-dim:#8a5f26;
+    --ok:#7fae6a;
+    --err:#c2624f;
+    --video:#6f9bd1;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  #rca-root{
+    background:var(--base);
+    color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+    min-height:100%;
+    padding:40px 24px 64px;
+    line-height:1.5;
+  }
+  .rca-wrap{max-width:820px;margin:0 auto;}
+
+  .rca-head{margin-bottom:36px;position:relative;}
+  .rca-eyebrow{
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--safelight);margin-bottom:10px;display:flex;align-items:center;gap:8px;
+  }
+  .rca-eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--safelight);box-shadow:0 0 8px var(--safelight);}
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(28px,5vw,40px);
+    margin:0 0 12px;
+    color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .rca-sub{color:var(--ink-dim);font-size:13.5px;max-width:62ch;}
+  .rca-sub b{color:var(--ink);font-weight:500;}
+
+  .rca-panel{
+    background:var(--base-raised);
+    border:1px solid var(--frame);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-bottom:28px;
+  }
+  .rca-panel-label{
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-dim);margin-bottom:10px;
+  }
+  textarea{
+    width:100%;background:var(--base);color:var(--ink);
+    border:1px solid var(--frame);border-radius:var(--radius);
+    padding:12px 14px;font-family:'IBM Plex Mono',monospace;font-size:13px;
+    resize:vertical;min-height:110px;outline:none;
+  }
+  textarea:focus{border-color:var(--safelight-dim);}
+  textarea::placeholder{color:#5c5744;}
+
+  .rca-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:12px;flex-wrap:wrap;}
+  .rca-count{font-size:11.5px;color:var(--ink-dim);}
+  .rca-count b{color:var(--safelight);}
+
+  button.rca-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;
+    letter-spacing:.04em;text-transform:uppercase;
+    background:var(--safelight);color:#1a1207;border:none;
+    padding:11px 20px;border-radius:var(--radius);cursor:pointer;
+    transition:transform .1s ease, background .15s ease;
+  }
+  button.rca-btn:hover:not(:disabled){background:#f0aa4c;}
+  button.rca-btn:active:not(:disabled){transform:translateY(1px);}
+  button.rca-btn:disabled{background:var(--frame);color:var(--ink-dim);cursor:not-allowed;}
+
+  button.rca-btn-ghost{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;
+    background:transparent;color:var(--ink-dim);border:1px solid var(--frame);
+    padding:9px 16px;border-radius:var(--radius);cursor:pointer;
+  }
+  button.rca-btn-ghost:hover{color:var(--ink);border-color:var(--ink-dim);}
+
+  .rca-note{font-size:11.5px;color:var(--ink-dim);margin-top:10px;line-height:1.6;}
+
+  .rca-results{margin-top:8px;}
+  .rca-strip-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin:32px 0 12px;border-top:1px solid var(--frame);padding-top:20px;
+    flex-wrap:wrap;gap:10px;
+  }
+  .rca-strip-head h2{
+    font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin:0;color:var(--ink);
+  }
+
+  .frame{
+    position:relative;
+    background:var(--base-raised);
+    border:1px solid var(--frame);
+    border-radius:var(--radius);
+    padding:14px 16px 14px 46px;
+    margin-bottom:10px;
+    display:flex;gap:14px;align-items:center;
+    flex-wrap:wrap;
+  }
+  .frame::before, .frame::after{
+    content:"";
+    position:absolute;left:0;top:0;bottom:0;width:20px;
+    background-image:radial-gradient(circle,var(--base) 2.5px,transparent 2.5px);
+    background-size:20px 16px;background-position:8px 6px;
+    background-repeat:repeat-y;
+    border-right:1px dashed var(--frame);
+  }
+  .frame::after{left:auto;right:0;border-right:none;border-left:1px dashed var(--frame);}
+  .frame-num{
+    font-size:10px;color:var(--ink-dim);position:absolute;top:6px;left:26px;letter-spacing:.05em;
+  }
+
+  .frame-thumb{
+    width:64px;height:64px;flex:none;border-radius:2px;overflow:hidden;
+    background:var(--base);display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--frame);
+  }
+  .frame-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+
+  .frame-body{flex:1;min-width:160px;}
+  .frame-url{
+    font-size:11.5px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;
+    text-overflow:ellipsis;margin-bottom:6px;
+  }
+  .frame-status-row{display:flex;gap:14px;flex-wrap:wrap;}
+  .frame-status{font-size:11.5px;display:flex;align-items:center;gap:4px;}
+  .frame-status .tag{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-dim);}
+  .frame-status.ok{color:var(--ok);}
+  .frame-status.err{color:var(--err);}
+  .frame-status.pending{color:var(--safelight);}
+
+  .frame-actions{flex:none;display:flex;gap:6px;flex-wrap:wrap;}
+  a.frame-dl, button.frame-retry{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+    text-decoration:none;
+    padding:7px 11px;border-radius:2px;border:none;cursor:pointer;
+    display:inline-block;white-space:nowrap;
+  }
+  a.frame-dl.thumb{background:var(--ink);color:var(--base);}
+  a.frame-dl.video{background:var(--video);color:#0c1620;}
+  button.frame-retry{background:transparent;color:var(--err);border:1px solid var(--err);}
+
+  .rca-spinner{
+    width:12px;height:12px;border-radius:50%;
+    border:2px solid var(--frame);border-top-color:var(--safelight);
+    animation:rca-spin .7s linear infinite;display:inline-block;vertical-align:-2px;
+  }
+  @keyframes rca-spin{to{transform:rotate(360deg);}}
+
+  .rca-batch-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media (max-width:560px){ .rca-batch-grid{grid-template-columns:1fr;} }
+  button.rca-btn.video-btn{background:var(--video);color:#0c1620;}
+  button.rca-btn.video-btn:hover:not(:disabled){background:#89b3e3;}
+
+  .rca-footer{margin-top:8px;padding-top:20px;border-top:1px solid var(--frame);}
+
+  @media (max-width:480px){
+    .frame{padding-left:38px;}
+    .frame::before{width:16px;}
+    .frame-num{left:22px;}
+    .frame-actions{width:100%;}
+  }
+</style>
+</head>
+<body style="margin:0;background:#15140f;">
+<div id="rca-root">
+  <div class="rca-wrap">
+    <div class="rca-head">
+      <div class="rca-eyebrow">개인 아카이브 · 비공개 도구</div>
+      <h1>릴스 커버 아카이브</h1>
+      <div class="rca-sub">공개 릴스 링크를 붙여넣으면 <b>표지 이미지</b>와 <b>영상</b>을 분리해 저장합니다. 브라우저가 Instagram을 직접 호출하지 않고 <b>같은 사이트의 API</b>가 미디어 주소를 확인하므로, Vercel에 프로젝트 전체를 배포해야 작동합니다.</div>
+    </div>
+
+    <div class="rca-panel">
+      <div class="rca-panel-label">01 · 릴스 링크 붙여넣기 (한 줄에 하나씩, 여러 개 가능)</div>
+      <textarea id="rca-input" placeholder="https://www.instagram.com/reel/AbCdEfGh1i/
+https://www.instagram.com/reel/XyZ123456/
+https://www.instagram.com/p/QwErTyUiO/"></textarea>
+      <div class="rca-row">
+        <div class="rca-count"><b id="rca-count">0</b>개 링크 인식됨</div>
+        <div style="display:flex;gap:8px;">
+          <button class="rca-btn-ghost" id="rca-clear">지우기</button>
+          <button class="rca-btn" id="rca-run">가져오기</button>
+        </div>
+      </div>
+      <div class="rca-note">⚠ 이 버전은 공개 CORS 프록시를 사용하지 않습니다. 링크 해석은 <code>/api/resolve</code>, 파일 전송은 <code>/api/media</code>에서 처리합니다. Instagram의 접근 정책이나 요청 제한에 따라 일부 공개 릴스도 실패할 수 있습니다.</div>
+    </div>
+
+    <div class="rca-panel" style="border-color:var(--video);">
+      <div class="rca-panel-label" style="color:var(--video);">💡 실행 전 확인</div>
+      <div class="rca-note" style="margin-top:0;">
+        이 파일을 컴퓨터에서 더블클릭해 <b style="color:var(--ink);">file://</b>로 열면 API가 없어서 작동하지 않습니다. 아래 제공한 <b style="color:var(--ink);">index.html · api 폴더 · package.json</b>을 함께 GitHub에 올리고 Vercel에서 배포하세요.<br><br>
+        본인 계정 전체 백업이 목적이라면 Instagram의 공식 <b style="color:var(--ink);">정보 다운로드</b> 기능이 가장 안정적입니다.
+      </div>
+    </div>
+
+    <div class="rca-results" id="rca-results"></div>
+
+    <div id="rca-batch-wrap" style="display:none;">
+      <div class="rca-strip-head">
+        <h2>일괄 다운로드</h2>
+        <div class="rca-count">썸네일 <b id="rca-ok-thumb">0</b>개 · 영상 <b id="rca-ok-video">0</b>개 준비됨</div>
+      </div>
+      <div class="rca-batch-grid">
+        <button class="rca-btn" id="rca-zip-thumb">썸네일 전체 ZIP 저장</button>
+        <button class="rca-btn video-btn" id="rca-zip-video">영상 전체 순차 저장</button>
+      </div>
+    </div>
+
+    <div class="rca-footer rca-note">
+      개인적인 백업·재편집 용도로만 사용하세요. 다운로드한 파일을 재배포할 경우 원 저작자(본인 계정이라면 본인)의 권리를 존중해야 합니다.
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  const input = document.getElementById('rca-input');
+  const countEl = document.getElementById('rca-count');
+  const runBtn = document.getElementById('rca-run');
+  const clearBtn = document.getElementById('rca-clear');
+  const results = document.getElementById('rca-results');
+  const batchWrap = document.getElementById('rca-batch-wrap');
+  const okThumbEl = document.getElementById('rca-ok-thumb');
+  const okVideoEl = document.getElementById('rca-ok-video');
+  const zipThumbBtn = document.getElementById('rca-zip-thumb');
+  const zipVideoBtn = document.getElementById('rca-zip-video');
+
+  let items = [];
+
+  function normalizeInstagramUrl(value){
+    try{
+      const url = new URL(value.trim());
+      const host = url.hostname.toLowerCase().replace(/^www\./, '');
+      if(host !== 'instagram.com') return null;
+
+      // /reel/CODE/, /p/CODE/, /tv/CODE/ 및 /사용자/reel/CODE/ 형태 지원
+      const match = url.pathname.match(/\/(?:[^/]+\/)?(reel|p|tv)\/([A-Za-z0-9_-]+)/i);
+      if(!match) return null;
+      return `https://www.instagram.com/${match[1].toLowerCase()}/${match[2]}/`;
+    }catch(_error){
+      return null;
+    }
+  }
+
+  function parseUrls(){
+    const normalized = input.value
+      .split(/\r?\n/)
+      .map(normalizeInstagramUrl)
+      .filter(Boolean);
+    return [...new Set(normalized)];
+  }
+
+  function escapeHtml(value){
+    return String(value ?? '').replace(/[&<>'"]/g, ch => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;'
+    })[ch]);
+  }
+
+  function apiMediaUrl(remoteUrl, filename, inline){
+    const params = new URLSearchParams({ url: remoteUrl, filename });
+    if(inline) params.set('inline', '1');
+    return `/api/media?${params.toString()}`;
+  }
+
+  async function resolveMedia(url){
+    const response = await fetch('/api/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+
+    let data = null;
+    try{ data = await response.json(); }catch(_error){}
+
+    if(!response.ok){
+      throw new Error(data?.error || `링크 해석 실패 (${response.status})`);
+    }
+    return data;
+  }
+
+  input.addEventListener('input', () => {
+    countEl.textContent = parseUrls().length;
+  });
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    countEl.textContent = '0';
+    results.innerHTML = '';
+    items = [];
+    batchWrap.style.display = 'none';
+  });
+
+  function statusChip(kind, label){
+    const safeLabel = escapeHtml(label);
+    if(kind === 'pending') return `<span class="frame-status pending"><span class="rca-spinner"></span>${safeLabel}</span>`;
+    if(kind === 'ok') return `<span class="frame-status ok">✓ ${safeLabel}</span>`;
+    if(kind === 'err') return `<span class="frame-status err">✕ ${safeLabel}</span>`;
+    return `<span class="frame-status" style="color:var(--ink-dim);">– ${safeLabel}</span>`;
+  }
+
+  function render(){
+    results.innerHTML = items.map((it, index) => {
+      const number = String(index + 1).padStart(3, '0');
+      const thumbFilename = `reel-cover-${number}.jpg`;
+      const thumbHtml = it.thumb.status === 'ok'
+        ? `<img src="${escapeHtml(apiMediaUrl(it.thumb.url, thumbFilename, true))}" alt="thumbnail" loading="lazy">`
+        : '';
+
+      const thumbStatus = it.thumb.status === 'pending' ? statusChip('pending', '썸네일 확인 중')
+        : it.thumb.status === 'ok' ? statusChip('ok', '썸네일 준비')
+        : it.thumb.status === 'err' ? statusChip('err', it.thumb.error || '썸네일 실패')
+        : statusChip('none', '대기');
+
+      const videoStatus = it.video.status === 'pending' ? statusChip('pending', '영상 확인 중')
+        : it.video.status === 'ok' ? statusChip('ok', '영상 준비')
+        : it.video.status === 'err' ? statusChip('err', it.video.error || '영상 실패')
+        : statusChip('none', '대기');
+
+      let actions = '';
+      if(it.thumb.status === 'ok') actions += `<a class="frame-dl thumb" href="#" data-idx="${index}" data-kind="thumb">썸네일↓</a>`;
+      if(it.thumb.status === 'err') actions += `<button class="frame-retry" data-idx="${index}">다시 확인</button>`;
+      if(it.video.status === 'ok') actions += `<a class="frame-dl video" href="#" data-idx="${index}" data-kind="video">영상↓</a>`;
+      if(it.video.status === 'err' && it.thumb.status !== 'err') actions += `<button class="frame-retry" data-idx="${index}">영상 재확인</button>`;
+
+      return `<div class="frame">
+        <span class="frame-num">#${number}</span>
+        <div class="frame-thumb">${thumbHtml}</div>
+        <div class="frame-body">
+          <div class="frame-url" title="${escapeHtml(it.url)}">${escapeHtml(it.url)}</div>
+          <div class="frame-status-row">${thumbStatus}${videoStatus}</div>
+        </div>
+        <div class="frame-actions">${actions}</div>
+      </div>`;
+    }).join('');
+
+    document.querySelectorAll('.frame-retry').forEach(button => {
+      button.addEventListener('click', () => resolveOne(Number(button.dataset.idx)));
+    });
+
+    document.querySelectorAll('.frame-dl').forEach(link => {
+      link.addEventListener('click', event => {
+        event.preventDefault();
+        downloadOne(Number(link.dataset.idx), link.dataset.kind);
+      });
+    });
+
+    const okThumb = items.filter(item => item.thumb.status === 'ok').length;
+    const okVideo = items.filter(item => item.video.status === 'ok').length;
+    okThumbEl.textContent = okThumb;
+    okVideoEl.textContent = okVideo;
+    batchWrap.style.display = items.length ? 'block' : 'none';
+    zipThumbBtn.disabled = okThumb === 0;
+    zipVideoBtn.disabled = okVideo === 0;
+  }
+
+  function triggerNativeDownload(url){
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  }
+
+  function downloadOne(index, kind){
+    const item = items[index];
+    const slot = kind === 'thumb' ? item.thumb : item.video;
+    if(slot.status !== 'ok' || !slot.url) return;
+
+    const number = String(index + 1).padStart(3, '0');
+    const filename = kind === 'thumb'
+      ? `reel-cover-${number}.jpg`
+      : `reel-video-${number}.mp4`;
+
+    // 같은 출처의 API가 Content-Disposition: attachment로 스트리밍하므로
+    // 대용량 영상을 브라우저 메모리에 Blob으로 전부 올리지 않아도 됩니다.
+    triggerNativeDownload(apiMediaUrl(slot.url, filename, false));
+  }
+
+  async function resolveOne(index){
+    const item = items[index];
+    item.thumb = { status:'pending', url:null, error:null };
+    item.video = { status:'pending', url:null, error:null };
+    render();
+
+    try{
+      const data = await resolveMedia(item.url);
+      item.thumb = data.thumbUrl
+        ? { status:'ok', url:data.thumbUrl, error:null }
+        : { status:'err', url:null, error:'표지 주소 없음' };
+      item.video = data.videoUrl
+        ? { status:'ok', url:data.videoUrl, error:null }
+        : { status:'err', url:null, error:'영상 주소 없음' };
+    }catch(error){
+      const message = error instanceof Error ? error.message : '알 수 없는 오류';
+      item.thumb = { status:'err', url:null, error:message };
+      item.video = { status:'err', url:null, error:message };
+    }
+    render();
+  }
+
+  async function runAll(){
+    if(location.protocol === 'file:'){
+      alert('이 파일은 단독 HTML로 실행할 수 없습니다. 프로젝트 전체를 Vercel에 배포하거나 `vercel dev`로 실행해 주세요.');
+      return;
+    }
+
+    const urls = parseUrls();
+    if(urls.length === 0) return;
+
+    items = urls.map(url => ({
+      url,
+      thumb:{ status:'pending', url:null, error:null },
+      video:{ status:'pending', url:null, error:null }
+    }));
+    render();
+    runBtn.disabled = true;
+
+    const concurrency = 2;
+    let cursor = 0;
+    async function worker(){
+      while(cursor < items.length){
+        const index = cursor++;
+        await resolveOne(index);
+      }
+    }
+
+    await Promise.all(Array.from({ length:Math.min(concurrency, items.length) }, worker));
+    runBtn.disabled = false;
+  }
+
+  async function downloadThumbZip(){
+    const ready = items
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.thumb.status === 'ok');
+    if(!ready.length) return;
+
+    zipThumbBtn.disabled = true;
+    const originalText = zipThumbBtn.textContent;
+    zipThumbBtn.textContent = '압축 중…';
+
+    try{
+      const zip = new JSZip();
+      for(const { item, index } of ready){
+        const number = String(index + 1).padStart(3, '0');
+        const filename = `reel-cover-${number}.jpg`;
+        const response = await fetch(apiMediaUrl(item.thumb.url, filename, true));
+        if(!response.ok) continue;
+        const blob = await response.blob();
+        zip.file(filename, blob);
+      }
+
+      const content = await zip.generateAsync({ type:'blob' });
+      const objectUrl = URL.createObjectURL(content);
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl;
+      anchor.download = 'reel-covers.zip';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+    }catch(error){
+      alert(`썸네일 ZIP 생성 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    }finally{
+      zipThumbBtn.disabled = false;
+      zipThumbBtn.textContent = originalText;
+    }
+  }
+
+  async function downloadVideosSequentially(){
+    const ready = items
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.video.status === 'ok');
+    if(!ready.length) return;
+
+    zipVideoBtn.disabled = true;
+    const originalText = zipVideoBtn.textContent;
+
+    try{
+      for(let i = 0; i < ready.length; i++){
+        zipVideoBtn.textContent = `${i + 1}/${ready.length} 저장 요청 중…`;
+        const { index } = ready[i];
+        downloadOne(index, 'video');
+        await new Promise(resolve => setTimeout(resolve, 900));
+      }
+    }finally{
+      zipVideoBtn.disabled = false;
+      zipVideoBtn.textContent = originalText;
+    }
+  }
+
+  runBtn.addEventListener('click', runAll);
+  zipThumbBtn.addEventListener('click', downloadThumbZip);
+  zipVideoBtn.addEventListener('click', downloadVideosSequentially);
+})();
+</script>
+</body>
+</html>
